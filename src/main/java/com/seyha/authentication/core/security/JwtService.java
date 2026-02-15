@@ -1,14 +1,11 @@
 package com.seyha.authentication.core.security;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.websocket.Decoder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,7 +22,6 @@ public class JwtService {
     // 1. Secret Key Management
     // Ideally, load this from environment variables.
     // For demo, this is a generated 256-bit key (Hex encoded).
-
     @Value("${security.jwt.secret-key}")
     private String secretKey;
     @Value("${security.jwt.expiration}")
@@ -71,7 +67,6 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-
     private Date extractExpiration(String token){
         return extractClaim(token,Claims::getExpiration);
     }
@@ -83,7 +78,6 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
 
     private SecretKey getSignInKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
