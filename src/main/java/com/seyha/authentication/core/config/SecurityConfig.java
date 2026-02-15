@@ -1,6 +1,4 @@
 package com.seyha.authentication.core.config;
-
-import com.seyha.authentication.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
