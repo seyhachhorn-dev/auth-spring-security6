@@ -3,10 +3,7 @@ package com.seyha.authentication.domain;
 import com.seyha.authentication.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -18,7 +15,9 @@ import java.util.UUID;
 @Entity
 @Setter
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "app_user")
 public class User {
     @Id
@@ -27,6 +26,8 @@ public class User {
     @Email
     @Column(nullable = false, unique = true)
     private String email;
+    private String firstname;
+    private String lastname;
     @Column(nullable = false)
     private String password;
     @Enumerated(EnumType.STRING)
