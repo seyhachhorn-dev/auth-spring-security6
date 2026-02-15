@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: authentication
+  datasource:
+    url: jdbc:postgresql://localhost:5444/auth_db
+    username: seyha
+    password: seyha123
+  jpa:
+    hibernate:
+      ddl-auto: update       # options: none, validate, update, create, create-drop
+      show-sql: true
+      format-sql: true
+      open-in-view: false   # PRODUCTION RULE: Always disable OSIV to prevent DB connection leaks
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  hikari:
+    pool-name: Hikari-AuthPool
+    maximum-pool-size: 20
+    minimum-idle: 5
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    connection-timeout: 30000
+#  flyway:
+#    enabled: true
+#    baseline-on-migrate: true
