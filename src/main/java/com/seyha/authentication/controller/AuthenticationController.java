@@ -4,6 +4,7 @@ import com.seyha.authentication.dto.req.AuthenticationRequest;
 import com.seyha.authentication.dto.req.RegisterRequest;
 import com.seyha.authentication.dto.res.AuthenticationResponse;
 import com.seyha.authentication.service.AuthenticationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +24,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest req){
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest req){
         return ResponseEntity.ok(authenticationService.register(req));
     }
 
