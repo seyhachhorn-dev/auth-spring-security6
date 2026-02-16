@@ -1,5 +1,4 @@
 package com.seyha.authentication.core.exceptions;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.AccountStatusException;
@@ -7,7 +6,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.nio.file.AccessDeniedException;
 import java.security.SignatureException;
 import java.util.HashMap;

@@ -1,4 +1,5 @@
 package com.seyha.authentication.service.impl;
+
 import com.seyha.authentication.core.security.JwtService;
 import com.seyha.authentication.core.security.SecurityUser;
 import com.seyha.authentication.domain.RefreshToken;
@@ -10,16 +11,13 @@ import com.seyha.authentication.enums.Role;
 import com.seyha.authentication.repository.RefreshTokenRepository;
 import com.seyha.authentication.repository.UserRepository;
 import com.seyha.authentication.service.AuthenticationService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
-import java.io.IOException;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -31,6 +29,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
+    @Value("${security.jwt.expiration}")
+    private  long jwtExpiration;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,7 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
     @Override
-    public AuthenticationResponse register(RegisterRequest req) {
+    public String register(RegisterRequest req) {
 //        create user entity
         var user = User.builder()
                 .email(req.email())
@@ -51,12 +51,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .enabled(true)
                 .build();
 //        save into db
-       var savedUser = userRepository.save(user);
-        // 3. Generate Token (Wrap entity in Adapter first)
-        var jwtToken = jwtService.generateToken(new SecurityUser(user));
-        var refreshToken = generateAndSaveRefreshToken(savedUser);
-        return new AuthenticationResponse(jwtToken,refreshToken);
-    }
+        userRepository.save(user);
+        return "User registered successfully!";    }
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest req) {
@@ -74,12 +70,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // 3. Generate Token
         var jwtToken = jwtService.generateToken(new SecurityUser(user));
         var refreshToken = generateAndSaveRefreshToken(user);
-        return new AuthenticationResponse(jwtToken,refreshToken);
+        return  AuthenticationResponse.builder()
+                .accessToken(jwtToken)
+                .tokenType("Bearer ")
+                .refreshToken(refreshToken)
+                .expiresIn(jwtExpiration / 1000)
+                .build();
     }
 
 
     private String generateAndSaveRefreshToken(User user) {
-
         var refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(UUID.randomUUID().toString())
@@ -101,43 +101,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         refreshTokenRepository.saveAll(validUserTokens);
     }
 
-    public void refreshToken(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        final String authHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
-
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            return;
-        }
-        // 2. Extract refreshToken
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-
-        if(userEmail!=null){
-            var user = this.userRepository.findByEmail(userEmail).orElseThrow();
-
-            // 5. VALIDATE THE TOKEN
-            var isTokenValid = jwtService.isTokenValid(refreshToken, new SecurityUser(user));
-            var isTokenRevoked = refreshTokenRepository.findByToken(refreshToken)
-                    .map(RefreshToken::isRevoked)
-                    .orElse(true);
-
-            if(isTokenValid && !isTokenRevoked){
-                // 6. ROTATION LOGIC (The "Magic")
-                // Revoke the OLD refresh token (So it can't be used again)
-                var storedToken = refreshTokenRepository.findByToken(refreshToken).orElseThrow();
-                storedToken.setRevoked(true);
-                refreshTokenRepository.save(storedToken);
-
-                //7 generate new
-                var jwtToken = jwtService.generateToken(new SecurityUser(user));
-                var newRefreshToken = generateAndSaveRefreshToken(user);
-
-                // 8 send response
-
-                var authResponse = new AuthenticationResponse(jwtToken,newRefreshToken);
-                new ObjectMapper().writeValue(res.getOutputStream(),authResponse);
-            }
-        }
-    }
 }
