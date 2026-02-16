@@ -6,6 +6,7 @@ package com.seyha.authentication.dto.res;
  */
 
 public record AuthenticationResponse(
-        String token
+        String token,
+        String refreshToken
 ) {
 }
